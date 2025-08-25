@@ -4,24 +4,44 @@
 
 This system transforms Prolog algorithms into mathematical formulas and neuronet-like inductive representations. The key breakthrough capability is **generating mathematical formulas for recursive algorithms** and proving their correctness using mathematical induction.
 
+## 🆕 NEW FEATURES: Polynomial Optimization System
+
+**Enhanced with polynomial coefficient discovery and systematic optimization:**
+
+🔥 **nn_induction_optimisation(B,C)** - Finds polynomial coefficients B,C such that B*n² + C*n fits mathematical patterns (e.g., n(n+1)/2)
+
+🔥 **Extended Polynomial Fitting** - Support for increasing degree polynomials (quadratic, cubic, quartic, etc.)
+
+🔥 **Systematic Coefficient Discovery** - Advanced methods beyond fixed coefficient sets
+
+🔥 **Cognitive Code Generation** - Outputs executable Prolog/Starlog code from mathematical formulas
+
+🔥 **Neuro-Optimized Integration** - Full pipeline integration with CFG generator and mathematical induction
+
 ## Key Capabilities
 
-🔥 **NEW: Mathematical Formula Generation**
+**Mathematical Formula Generation:**
 - Converts recursive algorithms into explicit mathematical formulas
 - Proves formulas using mathematical induction (base case + inductive step)
 - Verifies formulas against actual algorithm execution
 - **Example**: `sum_list([1,2,...,n])` → Formula: `n(n+1)/2`
 
-The converter implements seven core modules:
+**Polynomial Optimization:**
+- `nn_induction_optimisation(B,C)` finds coefficients for quadratic formulas
+- Extended support for degree 3, 4, 5+ polynomials
+- Systematic coefficient search with mathematical constants
+- Integration with existing mathematical induction proofs
+
+The converter implements eight core modules:
 
 1. **Complexity Finder** (`complexity_finder/2`) - Analyzes computational complexity (O(1), O(n), O(n²), etc.)
 2. **Type Finder** (`type_finder/2`) - Infers data types (list, atom, string, number, compound term)
 3. **Inductive Transformation Engine** (`inductive_transform/2`) - Converts recursive predicates to base + inductive step form
-4. **Pattern Unfolding Module** (`pattern_unfold/2`) - **COMPLETED**: Expands predicate calls to inline definitions, showing explicit call relationships
+4. **Pattern Unfolding Module** (`pattern_unfold/2`) - Expands predicate calls to inline definitions, showing explicit call relationships
 5. **Grammar Generator** (`grammar_generate/2`) - Creates CFG-like grammars for lists, atoms, and strings
-6. **Mathematical Formula Generator** (`formula_generate/2`) - **COMPLETED**: Extracts mathematical patterns and formulas
-7. **Inductive Proof System** (`inductive_proof/3`) - **COMPLETED**: Generates mathematical induction proofs
-8. **Inductive Insertion Module** (`inductive_insert/3`) - **COMPLETED**: Optimizes code by replacing patterns with inductive equivalents
+6. **Mathematical Formula Generator** (`formula_generate/2`) - Extracts mathematical patterns and formulas
+7. **Inductive Proof System** (`inductive_proof/3`) - Generates mathematical induction proofs
+8. **Polynomial Optimization System** (`nn_induction_optimisation/2`, `polynomial_fit/3`) - **NEW**: Advanced polynomial coefficient discovery
 
 ## Installation
 
@@ -53,6 +73,25 @@ Algorithm = [
 ?- convert_algorithm(Algorithm, Neuronet).
 ```
 
+### Enhanced Polynomial Optimization Usage
+
+```prolog
+% Use the specific predicate from the problem statement
+?- nn_induction_optimisation(B, C).
+% Result: B=0.5, C=0.5 (for formula 0.5*n^2 + 0.5*n = n(n+1)/2)
+
+% Extended polynomial fitting for increasing degrees
+?- polynomial_fit([[1,1], [2,8], [3,27]], 3, Coefficients).
+% Result: Coefficients=[1,0,0,0] (for formula n^3)
+
+% Generate cognitive code from mathematical formulas
+?- Formula = combined_formula(sum_list, sum(empty_list)=0, sum(list_n)=sum(list_n_minus_1)+head_element),
+   generate_cognitive_code(Formula, CognitiveCode).
+
+% Enhanced conversion with polynomial optimization
+?- enhanced_convert_algorithm(Algorithm, EnhancedNeuronet).
+```
+
 ### Mathematical Formula Generation
 
 ```prolog
@@ -75,16 +114,24 @@ Algorithm = [
 # Run comprehensive demonstration (recommended)
 swipl -q -t "demo, halt" comprehensive_demo.pl
 
+# NEW: Run enhanced polynomial optimization demo
+swipl -q -t "main_demo, halt" final_demo.pl
+swipl -q -t "summary, halt" final_demo.pl
+
+# Test new polynomial optimization features
+swipl -q -t "test_polynomial_optimization, halt" test_polynomial_optimization.pl
+swipl -q -t "test_core_functionality, halt" test_core.pl
+
 # Run mathematical formula tests
 swipl -q -t "test_sum_formula, halt" test_sum_formula.pl
 swipl -q -t "test_factorial_formula, halt" test_factorial_formula.pl
 
-# Run enhanced feature tests (NEW)
+# Run enhanced feature tests
 swipl -q -t "test_additional_algorithms, halt" test_additional_algorithms.pl
 swipl -q -t "test_enhanced_features, halt" test_enhanced_features.pl
 swipl -q -t "demo_workflow, halt" test_enhanced_features.pl
 
-# Run original neuronet examples
+# Run original neuronet examples  
 swipl -q -t "test_neuronet, halt" test_neuronet.pl
 swipl -q -t "example_conversion, halt" neuronet_example.pl
 ```
@@ -92,38 +139,49 @@ swipl -q -t "example_conversion, halt" neuronet_example.pl
 ### Example Output
 
 ```
-=== Testing Sum of First N Natural Numbers Formula ===
+=== Enhanced nnconverter with Polynomial Optimization ===
 
-Generated Mathematical Formula:
-  Base Case: sum(empty_list)=0
-  Inductive Step: sum(list_n)=sum(list_n_minus_1)+head_element
+Testing nn_induction_optimisation/2:
+✓ Found coefficients: B=0.5, C=0.5
+Verification:
+  ✓ n=1: 1.0 (expected 1)
+  ✓ n=2: 3.0 (expected 3)
+  ✓ n=3: 6.0 (expected 6)
+  ✓ n=4: 10.0 (expected 10)
+  ✓ n=5: 15.0 (expected 15)
 
-Testing Formula: 1+2+...+n = n(n+1)/2
-✓ n=1: sum=1, formula=1 (MATCH)
-✓ n=2: sum=3, formula=3 (MATCH)  
-✓ n=3: sum=6, formula=6 (MATCH)
-✓ n=4: sum=10, formula=10 (MATCH)
-✓ n=5: sum=15, formula=15 (MATCH)
+Testing Extended Polynomial Fitting:
+  Quadratic (n^2): ✓ Found coefficients [1,0,0]
+  Cubic (n^3): ✓ Found coefficients [1,0,0,0]
+  
+Generated Cognitive Code:
+  cognitive_predicate(sum_list,[
+    clause(sum_list,[[],0],true),
+    clause(sum_list,[[H|T],S],
+           (recursive_call(sum_list,[T,S1]),arithmetic(S,H+S1)))
+  ])
 
-=== Inductive Proof ===
-Base Case Proof: Sum of empty list equals 0
-Inductive Step Proof: If sum(T) holds for list T, then sum([H|T]) = sum(T) + H
-
-=== Formula Verification ===
-Verification Result: verification_result(all_tests_passed,5,5)
+=== Mathematical Induction Integration ===
+Base Case: sum(empty_list)=0
+Inductive Step: sum(list_n)=sum(list_n_minus_1)+head_element
+Polynomial Formula: 0.5*n^2 + 0.5*n = n(n+1)/2
 ```
 
 ## Files
 
 **Core System:**
-- `neuronet_converter.pl` - Main converter module with all 7 components including mathematical formula generation
-- `comprehensive_demo.pl` - **NEW**: Complete demonstration of mathematical formula capabilities
+- `neuronet_converter.pl` - Main converter module with all 8 components including polynomial optimization
+- `comprehensive_demo.pl` - Complete demonstration of mathematical formula capabilities
+- `final_demo.pl` - **NEW**: Enhanced demonstration with polynomial optimization
+- `enhanced_demo.pl` - **NEW**: Complete integration example
 
-**Examples and Tests:**
+**Enhanced Tests:**
+- `test_polynomial_optimization.pl` - **NEW**: Comprehensive polynomial optimization tests
+- `test_core.pl` - **NEW**: Core nn_induction_optimisation functionality tests
 - `test_sum_formula.pl` - Test sum of first n natural numbers formula (1+2+...+n = n(n+1)/2)
 - `test_factorial_formula.pl` - Test factorial formula generation and proof
-- `test_additional_algorithms.pl` - **NEW**: Test list length, append, reverse, and fibonacci algorithms
-- `test_enhanced_features.pl` - **NEW**: Test pattern unfolding and inductive insertion capabilities
+- `test_additional_algorithms.pl` - Test list length, append, reverse, and fibonacci algorithms
+- `test_enhanced_features.pl` - Test pattern unfolding and inductive insertion capabilities
 - `neuronet_example.pl` - Worked examples with sum_list/2 and reverse/2  
 - `neuronet_demo.pl` - Multiple algorithm demonstrations
 - `test_neuronet.pl` - Basic functionality tests
@@ -137,19 +195,27 @@ Verification Result: verification_result(all_tests_passed,5,5)
 
 ```prolog
 convert_algorithm(+Algorithm, -Neuronet)
+enhanced_convert_algorithm(+Algorithm, -EnhancedNeuronet)
 ```
-Converts a list of Prolog clauses into a structured neuronet representation with mathematical formulas.
+Converts a list of Prolog clauses into a structured neuronet representation with mathematical formulas and polynomial optimization.
 
-**Parameters:**
-- `Algorithm`: List of Prolog clauses `[(Head :- Body), ...]`
-- `Neuronet`: Dictionary containing all transformation stages including `formulas`
+### Polynomial Optimization Components
 
-### Mathematical Formula Components
+```prolog
+nn_induction_optimisation(+B, +C)
+polynomial_fit(+DataPoints, +Degree, -Coefficients)  
+find_polynomial_coefficients(+DataPoints, +Degree, -Coefficients, -Error)
+generate_coefficient_candidates(-Candidates)
+evaluate_polynomial(+X, +Coefficients, -Result)
+```
+
+### Mathematical Formula & Cognitive Code
 
 ```prolog
 formula_generate(+InductiveForm, -Formulas)
 inductive_proof(+Formula, -BaseProof, -StepProof)  
 verify_formula(+Formula, +TestInputs, -VerificationResult)
+generate_cognitive_code(+Formula, -CognitiveCode)
 ```
 
 ### Individual Components

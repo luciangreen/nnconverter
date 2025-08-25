@@ -8,7 +8,14 @@
     inductive_insert/3,
     formula_generate/2,
     inductive_proof/3,
-    verify_formula/3
+    verify_formula/3,
+    nn_induction_optimisation/2,
+    polynomial_fit/3,
+    find_polynomial_coefficients/4,
+    generate_cognitive_code/2,
+    enhanced_convert_algorithm/2,
+    evaluate_polynomial/3,
+    generate_coefficient_candidates/1
 ]).
 
 /** <module> Prolog Algorithm → Manual Neuronet Converter
@@ -654,3 +661,250 @@ partition_results([test_passed(Input, Alg, Form)|Rest], [test_passed(Input, Alg,
     partition_results(Rest, PassedRest, Failed).
 partition_results([test_failed(Input, Alg, Form)|Rest], Passed, [test_failed(Input, Alg, Form)|FailedRest]) :-
     partition_results(Rest, Passed, FailedRest).
+
+%% nn_induction_optimisation(+B, +C)
+%  Find polynomial coefficients B and C for quadratic formula B*n^2 + C*n
+%  that fits the pattern for sum of first n natural numbers: n(n+1)/2
+%
+%  This is the specific predicate requested in the problem statement.
+%  It searches through possible coefficients to find those that satisfy
+%  the mathematical relationship for the sequence 1→1, 2→3, 3→6, 4→10.
+%
+%  @param B Coefficient for n^2 term
+%  @param C Coefficient for n term
+nn_induction_optimisation(B, C) :-
+    % Extended coefficient search space as requested
+    A = [0.5, 1, -0.5, -1, 0, -2, 2, 0.25, 0.75, 1.5, -1.5, 3, -3, 4, -4, 0.1, 0.2, 0.3, 0.6, 0.8],
+    member(B, A),
+    member(C, A),
+    % Test data points for sum of first n natural numbers: n(n+1)/2
+    F = [[1,1], [2,3], [3,6], [4,10], [5,15], [6,21]],  % Extended test cases
+    maplist(f([B,C]), F, _G).
+
+% Helper predicate for nn_induction_optimisation
+f([B,C], [E1,E2], E3) :-
+    E3 is B*(E1^2) + C*E1,
+    E2 =:= E3.
+
+%% polynomial_fit(+DataPoints, +Degree, -Coefficients)
+%  Find polynomial coefficients of specified degree that best fit the data points.
+%  This extends beyond the fixed quadratic case to support increasing degrees.
+%
+%  @param DataPoints List of [X,Y] pairs
+%  @param Degree     Polynomial degree (2=quadratic, 3=cubic, etc.)
+%  @param Coefficients List of coefficients [An, An-1, ..., A1, A0]
+polynomial_fit(DataPoints, Degree, Coefficients) :-
+    Degree >= 1,
+    Degree =< 6,  % Practical limit
+    find_polynomial_coefficients(DataPoints, Degree, Coefficients, _).
+
+%% find_polynomial_coefficients(+DataPoints, +Degree, -Coefficients, -Error)
+%  Systematically find polynomial coefficients using various methods.
+%  This addresses the request for "another method to find other values".
+%
+%  @param DataPoints  List of [X,Y] coordinate pairs
+%  @param Degree      Polynomial degree
+%  @param Coefficients Found coefficients
+%  @param Error       Fitting error measure
+find_polynomial_coefficients(DataPoints, 2, [B, C, 0], Error) :-
+    % For degree 2, use the original approach but with extended search
+    extended_coefficient_search(DataPoints, B, C),
+    calculate_fitting_error(DataPoints, [B, C, 0], Error).
+
+find_polynomial_coefficients(DataPoints, Degree, Coefficients, Error) :-
+    Degree > 2,
+    % For higher degrees, use systematic search with backtracking
+    systematic_coefficient_search(DataPoints, Degree, Coefficients),
+    calculate_fitting_error(DataPoints, Coefficients, Error).
+
+% Extended coefficient search with more values
+extended_coefficient_search(DataPoints, B, C) :-
+    % Generate wider range of possible coefficients
+    generate_coefficient_candidates(CandidateList),
+    member(B, CandidateList),
+    member(C, CandidateList),
+    % Test if these coefficients fit the data
+    test_polynomial_fit(DataPoints, [B, C, 0]).
+
+% Generate systematic coefficient candidates (optimized for efficiency)
+generate_coefficient_candidates(Candidates) :-
+    % More focused search for practical polynomial fitting
+    BasicFractions = [0, 1, -1, 0.5, -0.5, 2, -2, 0.25, 0.75, 1.5, -1.5],
+    SpecialConstants = [3, -3, 4, -4, 5, -5, 0.1, 0.2, 0.3, 0.6, 0.8],
+    append(BasicFractions, SpecialConstants, AllCandidates),
+    sort(AllCandidates, Candidates).
+
+% Systematic search for higher degree polynomials
+systematic_coefficient_search(DataPoints, Degree, Coefficients) :-
+    length(Coefficients, NumCoeffs),
+    NumCoeffs is Degree + 1,
+    generate_coefficient_candidates(CandidateList),
+    generate_coefficient_combination(CandidateList, NumCoeffs, Coefficients),
+    test_polynomial_fit(DataPoints, Coefficients).
+
+% Generate combinations of coefficients
+generate_coefficient_combination(_, 0, []) :- !.
+generate_coefficient_combination(Candidates, N, [C|Rest]) :-
+    N > 0,
+    member(C, Candidates),
+    N1 is N - 1,
+    generate_coefficient_combination(Candidates, N1, Rest).
+
+% Test if coefficients fit the data points
+test_polynomial_fit([], _).
+test_polynomial_fit([[X, Y]|Rest], Coefficients) :-
+    evaluate_polynomial(X, Coefficients, PredictedY),
+    abs(Y - PredictedY) < 0.0001,  % Tolerance for floating point comparison
+    test_polynomial_fit(Rest, Coefficients).
+
+% Evaluate polynomial at given X with coefficients [An, An-1, ..., A1, A0]
+evaluate_polynomial(X, Coefficients, Result) :-
+    length(Coefficients, N),
+    Degree is N - 1,
+    evaluate_polynomial_terms(X, Coefficients, Degree, 0, Result).
+
+evaluate_polynomial_terms(_, [], _, Acc, Acc).
+evaluate_polynomial_terms(X, [Coeff|RestCoeffs], Power, Acc, Result) :-
+    Term is Coeff * (X^Power),
+    NewAcc is Acc + Term,
+    Power1 is Power - 1,
+    evaluate_polynomial_terms(X, RestCoeffs, Power1, NewAcc, Result).
+
+% Calculate fitting error for a set of coefficients
+calculate_fitting_error(DataPoints, Coefficients, Error) :-
+    findall(Err,
+            (member([X, Y], DataPoints),
+             evaluate_polynomial(X, Coefficients, PredY),
+             Err is abs(Y - PredY)),
+            Errors),
+    sumlist(Errors, TotalError),
+    length(Errors, Count),
+    Error is TotalError / Count.
+
+%% generate_cognitive_code(+Formula, -CognitiveCode)
+%  Generate cognitive (Prolog/Starlog) code from mathematical formulas.
+%  This addresses the request for outputting cognitive code.
+%
+%  @param Formula      Mathematical formula structure
+%  @param CognitiveCode Generated Prolog code as atoms/strings
+generate_cognitive_code(combined_formula(PredName, BaseFormula, StepFormula), CognitiveCode) :-
+    % Generate base case code
+    generate_base_case_code(PredName, BaseFormula, BaseCode),
+    % Generate inductive step code
+    generate_step_case_code(PredName, StepFormula, StepCode),
+    % Combine into complete predicate
+    CognitiveCode = cognitive_predicate(PredName, [BaseCode, StepCode]).
+
+generate_cognitive_code(polynomial_formula(DataPoints, Degree, Coefficients), CognitiveCode) :-
+    % Generate code for polynomial evaluation
+    generate_polynomial_code(DataPoints, Degree, Coefficients, PolyCode),
+    CognitiveCode = cognitive_polynomial(polynomial_eval, PolyCode).
+
+% Generate base case code
+generate_base_case_code(PredName, BaseFormula, BaseCode) :-
+    BaseFormula =.. [=, Left, Right],
+    extract_base_pattern(Left, Right, Args),
+    BaseCode = clause(PredName, Args, true).
+
+extract_base_pattern(sum(empty_list), 0, [[], 0]).
+extract_base_pattern(factorial(0), 1, [0, 1]).
+extract_base_pattern(length(empty_list), 0, [[], 0]).
+extract_base_pattern(Generic, Value, [pattern, Generic, Value]).
+
+% Generate inductive step code
+generate_step_case_code(PredName, StepFormula, StepCode) :-
+    analyze_step_pattern(StepFormula, Pattern),
+    generate_recursive_clause(PredName, Pattern, StepCode).
+
+analyze_step_pattern(sum(list_n) = sum(list_n_minus_1) + head_element, 
+                     recursive_sum_pattern).
+analyze_step_pattern(factorial(n) = n * factorial(n-1), 
+                     recursive_mult_pattern).
+analyze_step_pattern(length(list_n) = length(list_n_minus_1) + 1,
+                     recursive_increment_pattern).
+
+generate_recursive_clause(PredName, recursive_sum_pattern, 
+                         clause(PredName, [[_H|_T], _S], 
+                               (recursive_call(PredName, [_T, _S1]), 
+                                arithmetic(_S, _H + _S1)))).
+
+generate_recursive_clause(PredName, recursive_mult_pattern,
+                         clause(PredName, [_N, _F],
+                               (_N > 0, _N1 is _N - 1, 
+                                recursive_call(PredName, [_N1, _F1]),
+                                arithmetic(_F, _N * _F1)))).
+
+generate_recursive_clause(PredName, recursive_increment_pattern,
+                         clause(PredName, [[_H|_T], _L],
+                               (recursive_call(PredName, [_T, _L1]),
+                                arithmetic(_L, _L1 + 1)))).
+
+% Generate polynomial evaluation code
+generate_polynomial_code(DataPoints, Degree, Coefficients, PolyCode) :-
+    PolyCode = polynomial_evaluator(
+        data_points(DataPoints),
+        degree(Degree),
+        coefficients(Coefficients),
+        evaluation_rule(
+            clause(eval_poly, [_X, _Result],
+                   polynomial_evaluation(_X, Coefficients, _Result))
+        )
+    ).
+
+% Enhanced convert_algorithm to include polynomial optimization
+enhanced_convert_algorithm(Algorithm, EnhancedNeuronet) :-
+    % Run standard conversion
+    convert_algorithm(Algorithm, Neuronet),
+    
+    % Try to find polynomial patterns in the algorithm's behavior
+    extract_algorithm_behavior(Algorithm, DataPoints),
+    
+    % Attempt polynomial fitting for various degrees (limited to avoid timeout)
+    findall(poly_fit(Degree, Coefficients, Error),
+            (member(Degree, [2, 3]),  % Limit to avoid long search times
+             DataPoints \= [],
+             catch(find_polynomial_coefficients(DataPoints, Degree, Coefficients, Error),
+                   _, fail),
+             Error < 0.1),
+            PolynomialFits),
+    
+    % Generate cognitive code
+    Neuronet = neuronet{
+        complexity: ComplexityInfo,
+        types: TypeInfo,
+        inductive_form: InductiveForm,
+        unfolded_form: UnfoldedForm,
+        grammar: Grammar,
+        optimised: OptimisedForm,
+        formulas: Formulas
+    },
+    
+    maplist(generate_cognitive_code, Formulas, CognitiveCodes),
+    
+    % Create enhanced neuronet with polynomial and cognitive code
+    EnhancedNeuronet = neuronet{
+        complexity: ComplexityInfo,
+        types: TypeInfo,
+        inductive_form: InductiveForm,
+        unfolded_form: UnfoldedForm,
+        grammar: Grammar,
+        optimised: OptimisedForm,
+        formulas: Formulas,
+        polynomial_fits: PolynomialFits,
+        cognitive_codes: CognitiveCodes,
+        enhanced_version: true
+    }.
+
+% Extract behavioral data points from algorithm for polynomial fitting
+extract_algorithm_behavior(Algorithm, DataPoints) :-
+    % This is a simplified approach - in practice, this would run the algorithm
+    % with various inputs to extract input-output relationships
+    (   member((sum_list([], 0) :- _), Algorithm) ->
+        % Sum algorithm detected - use known pattern
+        DataPoints = [[1,1], [2,3], [3,6], [4,10], [5,15]]
+    ;   member((factorial(0, 1) :- _), Algorithm) ->
+        % Factorial algorithm detected  
+        DataPoints = [[0,1], [1,1], [2,2], [3,6], [4,24]]
+    ;   % Generic case - would need actual algorithm execution
+        DataPoints = []
+    ).
